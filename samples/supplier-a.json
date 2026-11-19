@@ -1,0 +1,15 @@
+{
+  "supplier": "Northwind Outdoor Supply",
+  "generatedAt": "2026-11-18T06:00:00Z",
+  "products": [
+    { "sku": "TB-750", "title": "Trail Bottle 750ml", "brand": "HydraPeak", "category": "Hydration", "unitCost": 6.4, "currency": "USD", "qtyAvailable": 120, "updatedAt": "2026-11-18T05:42:00Z" },
+    { "sku": "CL-200", "title": "Camp Lantern 200lm", "brand": "Lumora", "category": "Lighting", "unitCost": 14.2, "currency": "USD", "qtyAvailable": 0, "updatedAt": "2026-11-17T21:10:00Z" },
+    { "sku": "hl-120", "title": "Headlamp 120lm", "brand": "Lumora", "category": "Lighting", "unitCost": "9.75", "currency": "usd", "qtyAvailable": 64, "updatedAt": "2026-11-18T05:42:00Z" },
+    { "sku": "ST-410", "title": "Compact Stove", "brand": "Emberline", "category": "Cooking", "unitCost": 31.5, "currency": "USD", "qtyAvailable": 0, "updatedAt": "2026-11-16T12:00:00Z" },
+    { "sku": "MG-055", "title": "Insulated Mug 350ml", "brand": "HydraPeak", "category": "Hydration", "unitCost": 4.8, "currency": "USD", "qtyAvailable": 200, "updatedAt": "2026-11-18T05:42:00Z" },
+    { "sku": "", "title": "Unlabeled Bottle", "brand": "HydraPeak", "category": "Hydration", "unitCost": 5.1, "currency": "USD", "qtyAvailable": 15, "updatedAt": "2026-11-18T05:42:00Z" },
+    { "sku": "TN-902", "title": "Two-Person Tent", "brand": "Ridgeway", "category": "Shelter", "unitCost": 89, "currency": "USD", "qtyAvailable": 12, "updatedAt": "2026-11-15T09:30:00Z" },
+    { "sku": "FK-018", "title": "  Titanium Spork ", "brand": "Emberline", "category": "Cooking", "unitCost": 2.35, "currency": "USD", "qtyAvailable": 340, "updatedAt": "2026-11-18T05:42:00Z" },
+    { "sku": "ZT-001", "title": "Cable Tie (single)", "brand": "Ridgeway", "category": "Accessories", "unitCost": 0.07, "currency": "USD", "qtyAvailable": 5000, "updatedAt": "2026-11-14T08:00:00Z" }
+  ]
+}

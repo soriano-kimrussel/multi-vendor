@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed supplier="Coastline Trading" generated="2026-11-18T04:15:00Z">
+  <product id="1001">
+    <sku>CL-200</sku>
+    <name>Camp Lantern 200lm</name>
+    <brand>Lumora</brand>
+    <category>Lighting</category>
+    <price currency="USD">15.00</price>
+    <inventory>25</inventory>
+    <updated>2026-11-18T03:50:00Z</updated>
+  </product>
+  <product id="1002">
+    <sku>TB-750</sku>
+    <name>Trail Bottle 750ml</name>
+    <brand>HydraPeak</brand>
+    <category>Hydration</category>
+    <price currency="USD">6.10</price>
+    <inventory>0</inventory>
+    <updated>2026-11-18T03:50:00Z</updated>
+  </product>
+  <product id="1003">
+    <sku>HM-310</sku>
+    <name>Hammock, Single</name>
+    <brand>Ridgeway</brand>
+    <category>Shelter</category>
+    <price currency="USD">21.00</price>
+    <inventory>5</inventory>
+    <updated>2026-11-17T18:20:00Z</updated>
+  </product>
+  <product id="1004">
+    <sku>HL-120 </sku>
+    <name>Headlamp 120lm</name>
+    <brand>Lumora</brand>
+    <category>Lighting</category>
+    <price currency="USD">9.20</price>
+    <inventory>30</inventory>
+    <updated>2026-11-18T03:50:00Z</updated>
+  </product>
+  <product id="1005">
+    <sku>CK-505</sku>
+    <name/>
+    <brand>Emberline</brand>
+    <category>Cooking</category>
+    <price currency="USD">12.00</price>
+    <inventory>8</inventory>
+    <updated>2026-11-18T03:50:00Z</updated>
+  </product>
+  <product id="1006">
+    <sku>FA-090</sku>
+    <name><![CDATA[First Aid Kit <Compact>]]></name>
+    <brand>Ridge &amp; Vale</brand>
+    <category>Safety</category>
+    <price currency="USD">11.30</price>
+    <inventory>44</inventory>
+    <updated>2026-11-16T10:05:00Z</updated>
+  </product>
+  <product id="1007">
+    <sku>WF-077</sku>
+    <name>Water Filter</name>
+    <brand>HydraPeak</brand>
+    <category>Hydration</category>
+    <price currency="USD">19.25</price>
+    <inventory>12</inventory>
+    <updated>2026-11-18T03:50:00Z</updated>
+  </product>
+  <product id="1008">
+    <sku>BT-812</sku>
+    <name>Trekking Poles (pair)</name>
+    <brand>Ridgeway</brand>
+    <category>Accessories</category>
+    <price currency="USD">24.75</price>
+    <inventory>21</inventory>
+    <updated>2026-11-15T14:40:00Z</updated>
+  </product>
+  <product id="1009">
+    <sku>GS-260</sku>
+    <name>Gas Canister 230g</name>
+    <brand>Emberline</brand>
+    <category>Cooking</category>
+    <price currency="USD">3.95</price>
+    <inventory>150</inventory>
+    <updated>2026-11-18T03:50:00Z</updated>
+  </product>
+</feed>

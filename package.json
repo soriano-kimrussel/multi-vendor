@@ -1,0 +1,20 @@
+{
+  "name": "multi-vendor-product-feed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "n8n workflow demo: three supplier feeds (JSON, CSV, XML) normalized, validated, deduplicated and priced. Runs natively on Windows with Node.js only.",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "node scripts/start.mjs start",
+    "import": "node scripts/start.mjs import:workflow --input=workflows/multi-vendor-product-feed.json",
+    "execute": "node scripts/start.mjs execute --id=mvProductFeed001",
+    "validate": "node scripts/validate-workflow.mjs",
+    "build:workflow": "node scripts/build-workflow.mjs"
+  },
+  "devDependencies": {
+    "n8n": "2.48.5"
+  }
+}

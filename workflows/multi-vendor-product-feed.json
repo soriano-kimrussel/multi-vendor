@@ -1,0 +1,1050 @@
+{
+  "id": "mvProductFeed001",
+  "name": "Multi-Vendor Product Feed Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b8f8cbc0-9833-496f-ae11-1a133d172f6d",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "502f6848-7f6a-44c3-a006-c4edb7c623c3",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        500
+      ],
+      "disabled": true,
+      "notes": "Production path. Enable to run the feed every hour."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1e3bc6c0-6ab1-4c81-a43c-6b3b44414464",
+              "name": "markupPercent",
+              "value": 35,
+              "type": "number"
+            },
+            {
+              "id": "95ef52e1-26e2-4437-a97c-623ba32f646b",
+              "name": "minMarginPercent",
+              "value": 25,
+              "type": "number"
+            },
+            {
+              "id": "70957c6d-2226-4e4d-a3d9-e5b9a14c8937",
+              "name": "currency",
+              "value": "USD",
+              "type": "string"
+            },
+            {
+              "id": "a6c94973-da9c-4ace-a280-d9c5eaefe43d",
+              "name": "useSampleData",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "4e1a9946-63b7-423c-aee0-9cbb7beff2a8",
+              "name": "supplierAUrl",
+              "value": "https://supplier-a.example.com/api/products",
+              "type": "string"
+            },
+            {
+              "id": "cce97379-4567-4f95-a039-ef3f89d11a52",
+              "name": "supplierBUrl",
+              "value": "https://supplier-b.example.com/export/products.csv",
+              "type": "string"
+            },
+            {
+              "id": "2d955fc5-1a20-43d9-aaea-22110fa3d0a6",
+              "name": "supplierCUrl",
+              "value": "https://supplier-c.example.com/feeds/products.xml",
+              "type": "string"
+            },
+            {
+              "id": "49ca1cbd-1819-479d-ac88-b5ce90e24b4e",
+              "name": "googleSheetId",
+              "value": "REPLACE_WITH_GOOGLE_SHEET_ID",
+              "type": "string"
+            },
+            {
+              "id": "94f5da8a-0619-47c9-acfc-0e8dabce49ab",
+              "name": "slackChannel",
+              "value": "#product-feed",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "82cb8b2e-3603-4612-a6ed-dc9a09bfa166",
+      "name": "Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        260,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "numberInputs": 3
+      },
+      "id": "c1b90e48-e9cd-4d9f-a9c0-2da358f82a68",
+      "name": "Merge supplier feeds",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1340,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.supplierAUrl }}",
+        "options": {}
+      },
+      "id": "664b0617-8af9-480c-a2dc-8d4459021183",
+      "name": "HTTP: Supplier A (JSON)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        200
+      ],
+      "disabled": true,
+      "notes": "Live feed. Enable and set useSampleData = false in Config to fetch supplierAUrl."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Offline stand-in for the Supplier A HTTP Request node.\n// useSampleData = true  -> return the embedded copy of the sample feed.\n// useSampleData = false -> pass the live HTTP response straight through.\nconst config = $('Config').first().json;\nif (!config.useSampleData) {\n  return $input.all();\n}\nconst SAMPLE = {\n  \"supplier\": \"Northwind Outdoor Supply\",\n  \"generatedAt\": \"2026-11-18T06:00:00Z\",\n  \"products\": [\n    {\n      \"sku\": \"TB-750\",\n      \"title\": \"Trail Bottle 750ml\",\n      \"brand\": \"HydraPeak\",\n      \"category\": \"Hydration\",\n      \"unitCost\": 6.4,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 120,\n      \"updatedAt\": \"2026-11-18T05:42:00Z\"\n    },\n    {\n      \"sku\": \"CL-200\",\n      \"title\": \"Camp Lantern 200lm\",\n      \"brand\": \"Lumora\",\n      \"category\": \"Lighting\",\n      \"unitCost\": 14.2,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 0,\n      \"updatedAt\": \"2026-11-17T21:10:00Z\"\n    },\n    {\n      \"sku\": \"hl-120\",\n      \"title\": \"Headlamp 120lm\",\n      \"brand\": \"Lumora\",\n      \"category\": \"Lighting\",\n      \"unitCost\": \"9.75\",\n      \"currency\": \"usd\",\n      \"qtyAvailable\": 64,\n      \"updatedAt\": \"2026-11-18T05:42:00Z\"\n    },\n    {\n      \"sku\": \"ST-410\",\n      \"title\": \"Compact Stove\",\n      \"brand\": \"Emberline\",\n      \"category\": \"Cooking\",\n      \"unitCost\": 31.5,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 0,\n      \"updatedAt\": \"2026-11-16T12:00:00Z\"\n    },\n    {\n      \"sku\": \"MG-055\",\n      \"title\": \"Insulated Mug 350ml\",\n      \"brand\": \"HydraPeak\",\n      \"category\": \"Hydration\",\n      \"unitCost\": 4.8,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 200,\n      \"updatedAt\": \"2026-11-18T05:42:00Z\"\n    },\n    {\n      \"sku\": \"\",\n      \"title\": \"Unlabeled Bottle\",\n      \"brand\": \"HydraPeak\",\n      \"category\": \"Hydration\",\n      \"unitCost\": 5.1,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 15,\n      \"updatedAt\": \"2026-11-18T05:42:00Z\"\n    },\n    {\n      \"sku\": \"TN-902\",\n      \"title\": \"Two-Person Tent\",\n      \"brand\": \"Ridgeway\",\n      \"category\": \"Shelter\",\n      \"unitCost\": 89,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 12,\n      \"updatedAt\": \"2026-11-15T09:30:00Z\"\n    },\n    {\n      \"sku\": \"FK-018\",\n      \"title\": \"  Titanium Spork \",\n      \"brand\": \"Emberline\",\n      \"category\": \"Cooking\",\n      \"unitCost\": 2.35,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 340,\n      \"updatedAt\": \"2026-11-18T05:42:00Z\"\n    },\n    {\n      \"sku\": \"ZT-001\",\n      \"title\": \"Cable Tie (single)\",\n      \"brand\": \"Ridgeway\",\n      \"category\": \"Accessories\",\n      \"unitCost\": 0.07,\n      \"currency\": \"USD\",\n      \"qtyAvailable\": 5000,\n      \"updatedAt\": \"2026-11-14T08:00:00Z\"\n    }\n  ]\n};\nreturn [{ json: SAMPLE }];\n"
+      },
+      "id": "e6646669-781c-4db5-a2a7-1012811154cf",
+      "name": "Sample: Supplier A",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function clean(v) {\n  return v === null || v === undefined ? '' : String(v).trim();\n}\n// Money is read from its decimal text and snapped to whole cents once, here.\n// Everything downstream does integer-cent math and only divides by 100 at the end.\nfunction toMoney(v) {\n  const s = clean(v).replace(/[$,\\s]/g, '');\n  if (!/^-?\\d+(\\.\\d+)?$/.test(s)) return null;\n  return Math.round(Number(s) * 100) / 100;\n}\nfunction toInt(v) {\n  const s = clean(v).replace(/[,\\s]/g, '');\n  if (!/^-?\\d+$/.test(s)) return null;\n  return Number(s);\n}\nfunction toIso(v) {\n  const s = clean(v);\n  if (!s) return null;\n  const d = new Date(s);\n  return Number.isNaN(d.getTime()) ? null : d.toISOString();\n}\n\n// Supplier A: JSON API. One item whose \"products\" array holds the rows.\nconst SUPPLIER = 'Supplier A';\nconst defaultCurrency = $('Config').first().json.currency;\n\nconst rows = [];\nfor (const item of $input.all()) {\n  const products = Array.isArray(item.json.products) ? item.json.products : [];\n  for (const product of products) rows.push(product);\n}\n\nreturn rows.map((p, index) => ({\n  json: {\n    sku: clean(p.sku).toUpperCase(),\n    name: clean(p.title),\n    brand: clean(p.brand),\n    category: clean(p.category),\n    cost: toMoney(p.unitCost),\n    currency: clean(p.currency).toUpperCase() || defaultCurrency,\n    stock: toInt(p.qtyAvailable),\n    supplier: SUPPLIER,\n    sourceUpdatedAt: toIso(p.updatedAt),\n    sourceRow: index + 1,\n  },\n}));\n"
+      },
+      "id": "bab254a8-2036-40e5-abe8-f8839ebaff86",
+      "name": "Normalize Supplier A",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.supplierBUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "68c32f97-23fa-40bb-af0e-e6471b0263d2",
+      "name": "HTTP: Supplier B (CSV)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        400
+      ],
+      "disabled": true,
+      "notes": "Live feed. Enable and set useSampleData = false in Config to fetch supplierBUrl."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Offline stand-in for the Supplier B HTTP Request node.\n// useSampleData = true  -> return the embedded copy of the sample feed.\n// useSampleData = false -> pass the live HTTP response straight through.\nconst config = $('Config').first().json;\nif (!config.useSampleData) {\n  return $input.all();\n}\nconst SAMPLE = {\n  \"data\": \"Item Code,Description,Manufacturer,Dept,Wholesale Price,Stock On Hand,Last Updated\\n TB-750 ,Trail Bottle 750ml,HydraPeak,Hydration,5.95,40,2026-11-17\\nHM-310,\\\"Hammock, Single\\\",Ridgeway,Shelter,21.00,10,2026-11-17\\nST-410,Compact Stove,Emberline,Cooking,30.00,0,2026-11-12\\nMG-055,Insulated Mug 350ml,HydraPeak,Hydration,0.00,75,2026-11-17\\nSB-640,\\\"Sleeping Bag, 3-Season\\\",Ridgeway,Sleep,$54.90,18,2026-11-16\\nPD-220,Sleeping Pad,Ridgeway,Sleep,27.25,-3,2026-11-17\\nWF-077,Water Filter,HydraPeak,Hydration,18.60,33,2026-11-17\\nRP-150,\\\"Paracord 15m \\\"\\\"Type III\\\"\\\"\\\",Ridgeway,Accessories,3.10,410,2026-11-10\\nFK-018,Titanium Spork,Emberline,Cooking,2.50,90,2026-11-17\\nDB-330,Dry Bag 30L,Ridgeway,Accessories,8.45,\\\"1,057\\\",2026-11-17\\n\"\n};\nreturn [{ json: SAMPLE }];\n"
+      },
+      "id": "7e5c0b27-6bec-461b-a1e3-859179390a01",
+      "name": "Sample: Supplier B",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function clean(v) {\n  return v === null || v === undefined ? '' : String(v).trim();\n}\n// Money is read from its decimal text and snapped to whole cents once, here.\n// Everything downstream does integer-cent math and only divides by 100 at the end.\nfunction toMoney(v) {\n  const s = clean(v).replace(/[$,\\s]/g, '');\n  if (!/^-?\\d+(\\.\\d+)?$/.test(s)) return null;\n  return Math.round(Number(s) * 100) / 100;\n}\nfunction toInt(v) {\n  const s = clean(v).replace(/[,\\s]/g, '');\n  if (!/^-?\\d+$/.test(s)) return null;\n  return Number(s);\n}\nfunction toIso(v) {\n  const s = clean(v);\n  if (!s) return null;\n  const d = new Date(s);\n  return Number.isNaN(d.getTime()) ? null : d.toISOString();\n}\n\n// Supplier B: CSV export. The raw text arrives in the \"data\" field.\nconst SUPPLIER = 'Supplier B';\nconst defaultCurrency = $('Config').first().json.currency;\n\n// Small RFC 4180 parser: quoted fields, embedded commas, doubled quotes, CRLF or LF.\nfunction parseCsv(text) {\n  const rows = [];\n  let row = [];\n  let field = '';\n  let quoted = false;\n  const endRow = () => {\n    row.push(field);\n    field = '';\n    if (row.some((f) => f.trim() !== '')) rows.push(row);\n    row = [];\n  };\n  for (let i = 0; i < text.length; i++) {\n    const c = text[i];\n    if (quoted) {\n      if (c === '\"') {\n        if (text[i + 1] === '\"') {\n          field += '\"';\n          i++;\n        } else {\n          quoted = false;\n        }\n      } else {\n        field += c;\n      }\n    } else if (c === '\"') {\n      quoted = true;\n    } else if (c === ',') {\n      row.push(field);\n      field = '';\n    } else if (c === '\\n' || c === '\\r') {\n      if (c === '\\r' && text[i + 1] === '\\n') i++;\n      endRow();\n    } else {\n      field += c;\n    }\n  }\n  endRow();\n  return rows;\n}\n\nconst out = [];\nfor (const item of $input.all()) {\n  const table = parseCsv(String(item.json.data ?? ''));\n  if (table.length === 0) continue;\n  const header = table[0].map((h) => h.trim());\n  const col = (record, name) => record[header.indexOf(name)];\n  table.slice(1).forEach((record, index) => {\n    out.push({\n      json: {\n        sku: clean(col(record, 'Item Code')).toUpperCase(),\n        name: clean(col(record, 'Description')),\n        brand: clean(col(record, 'Manufacturer')),\n        category: clean(col(record, 'Dept')),\n        cost: toMoney(col(record, 'Wholesale Price')),\n        currency: defaultCurrency,\n        stock: toInt(col(record, 'Stock On Hand')),\n        supplier: SUPPLIER,\n        sourceUpdatedAt: toIso(col(record, 'Last Updated')),\n        sourceRow: index + 1,\n      },\n    });\n  });\n}\nreturn out;\n"
+      },
+      "id": "a56b3d2d-8d86-4bd7-af92-4472f91844fb",
+      "name": "Normalize Supplier B",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.supplierCUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "1f953b2e-5431-452a-ab93-2da59462e8be",
+      "name": "HTTP: Supplier C (XML)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        540,
+        600
+      ],
+      "disabled": true,
+      "notes": "Live feed. Enable and set useSampleData = false in Config to fetch supplierCUrl."
+    },
+    {
+      "parameters": {
+        "jsCode": "// Offline stand-in for the Supplier C HTTP Request node.\n// useSampleData = true  -> return the embedded copy of the sample feed.\n// useSampleData = false -> pass the live HTTP response straight through.\nconst config = $('Config').first().json;\nif (!config.useSampleData) {\n  return $input.all();\n}\nconst SAMPLE = {\n  \"data\": \"<?xml version=\\\"1.0\\\" encoding=\\\"UTF-8\\\"?>\\n<feed supplier=\\\"Coastline Trading\\\" generated=\\\"2026-11-18T04:15:00Z\\\">\\n  <product id=\\\"1001\\\">\\n    <sku>CL-200</sku>\\n    <name>Camp Lantern 200lm</name>\\n    <brand>Lumora</brand>\\n    <category>Lighting</category>\\n    <price currency=\\\"USD\\\">15.00</price>\\n    <inventory>25</inventory>\\n    <updated>2026-11-18T03:50:00Z</updated>\\n  </product>\\n  <product id=\\\"1002\\\">\\n    <sku>TB-750</sku>\\n    <name>Trail Bottle 750ml</name>\\n    <brand>HydraPeak</brand>\\n    <category>Hydration</category>\\n    <price currency=\\\"USD\\\">6.10</price>\\n    <inventory>0</inventory>\\n    <updated>2026-11-18T03:50:00Z</updated>\\n  </product>\\n  <product id=\\\"1003\\\">\\n    <sku>HM-310</sku>\\n    <name>Hammock, Single</name>\\n    <brand>Ridgeway</brand>\\n    <category>Shelter</category>\\n    <price currency=\\\"USD\\\">21.00</price>\\n    <inventory>5</inventory>\\n    <updated>2026-11-17T18:20:00Z</updated>\\n  </product>\\n  <product id=\\\"1004\\\">\\n    <sku>HL-120 </sku>\\n    <name>Headlamp 120lm</name>\\n    <brand>Lumora</brand>\\n    <category>Lighting</category>\\n    <price currency=\\\"USD\\\">9.20</price>\\n    <inventory>30</inventory>\\n    <updated>2026-11-18T03:50:00Z</updated>\\n  </product>\\n  <product id=\\\"1005\\\">\\n    <sku>CK-505</sku>\\n    <name/>\\n    <brand>Emberline</brand>\\n    <category>Cooking</category>\\n    <price currency=\\\"USD\\\">12.00</price>\\n    <inventory>8</inventory>\\n    <updated>2026-11-18T03:50:00Z</updated>\\n  </product>\\n  <product id=\\\"1006\\\">\\n    <sku>FA-090</sku>\\n    <name><![CDATA[First Aid Kit <Compact>]]></name>\\n    <brand>Ridge &amp; Vale</brand>\\n    <category>Safety</category>\\n    <price currency=\\\"USD\\\">11.30</price>\\n    <inventory>44</inventory>\\n    <updated>2026-11-16T10:05:00Z</updated>\\n  </product>\\n  <product id=\\\"1007\\\">\\n    <sku>WF-077</sku>\\n    <name>Water Filter</name>\\n    <brand>HydraPeak</brand>\\n    <category>Hydration</category>\\n    <price currency=\\\"USD\\\">19.25</price>\\n    <inventory>12</inventory>\\n    <updated>2026-11-18T03:50:00Z</updated>\\n  </product>\\n  <product id=\\\"1008\\\">\\n    <sku>BT-812</sku>\\n    <name>Trekking Poles (pair)</name>\\n    <brand>Ridgeway</brand>\\n    <category>Accessories</category>\\n    <price currency=\\\"USD\\\">24.75</price>\\n    <inventory>21</inventory>\\n    <updated>2026-11-15T14:40:00Z</updated>\\n  </product>\\n  <product id=\\\"1009\\\">\\n    <sku>GS-260</sku>\\n    <name>Gas Canister 230g</name>\\n    <brand>Emberline</brand>\\n    <category>Cooking</category>\\n    <price currency=\\\"USD\\\">3.95</price>\\n    <inventory>150</inventory>\\n    <updated>2026-11-18T03:50:00Z</updated>\\n  </product>\\n</feed>\\n\"\n};\nreturn [{ json: SAMPLE }];\n"
+      },
+      "id": "7bd2c5ae-6f84-43d4-a570-c07088487d34",
+      "name": "Sample: Supplier C",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "function clean(v) {\n  return v === null || v === undefined ? '' : String(v).trim();\n}\n// Money is read from its decimal text and snapped to whole cents once, here.\n// Everything downstream does integer-cent math and only divides by 100 at the end.\nfunction toMoney(v) {\n  const s = clean(v).replace(/[$,\\s]/g, '');\n  if (!/^-?\\d+(\\.\\d+)?$/.test(s)) return null;\n  return Math.round(Number(s) * 100) / 100;\n}\nfunction toInt(v) {\n  const s = clean(v).replace(/[,\\s]/g, '');\n  if (!/^-?\\d+$/.test(s)) return null;\n  return Number(s);\n}\nfunction toIso(v) {\n  const s = clean(v);\n  if (!s) return null;\n  const d = new Date(s);\n  return Number.isNaN(d.getTime()) ? null : d.toISOString();\n}\n\n// Supplier C: XML feed. The raw text arrives in the \"data\" field.\nconst SUPPLIER = 'Supplier C';\nconst defaultCurrency = $('Config').first().json.currency;\n\nfunction xmlText(raw) {\n  const cdata = /^\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>\\s*$/.exec(raw);\n  if (cdata) return cdata[1];\n  return raw\n    .replace(/&lt;/g, '<')\n    .replace(/&gt;/g, '>')\n    .replace(/&quot;/g, '\"')\n    .replace(/&apos;/g, \"'\")\n    .replace(/&amp;/g, '&');\n}\n// Returns the text and attributes of the first <name>...</name> element in a block.\n// Self-closing or missing elements come back as empty text.\nfunction element(block, name) {\n  const m = new RegExp('<' + name + '\\\\b([^>]*)>([\\\\s\\\\S]*?)</' + name + '>').exec(block);\n  return m ? { attrs: m[1], text: xmlText(m[2]) } : { attrs: '', text: '' };\n}\nfunction attribute(attrs, name) {\n  const m = new RegExp('\\\\b' + name + '=\"([^\"]*)\"').exec(attrs);\n  return m ? m[1] : '';\n}\n\nconst out = [];\nfor (const item of $input.all()) {\n  const xml = String(item.json.data ?? '');\n  const blocks = [...xml.matchAll(/<product\\b[^>]*>([\\s\\S]*?)<\\/product>/g)].map((m) => m[1]);\n  blocks.forEach((block, index) => {\n    const price = element(block, 'price');\n    out.push({\n      json: {\n        sku: clean(element(block, 'sku').text).toUpperCase(),\n        name: clean(element(block, 'name').text),\n        brand: clean(element(block, 'brand').text),\n        category: clean(element(block, 'category').text),\n        cost: toMoney(price.text),\n        currency: clean(attribute(price.attrs, 'currency')).toUpperCase() || defaultCurrency,\n        stock: toInt(element(block, 'inventory').text),\n        supplier: SUPPLIER,\n        sourceUpdatedAt: toIso(element(block, 'updated').text),\n        sourceRow: index + 1,\n      },\n    });\n  });\n}\nreturn out;\n"
+      },
+      "id": "1c6b170e-e7bc-4d50-ae20-455da2a1cd8a",
+      "name": "Normalize Supplier C",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Marks every row valid or invalid and records why.\nreturn $input.all().map((item) => {\n  const row = item.json;\n  const reasons = [];\n\n  if (!row.sku) reasons.push('blank SKU');\n  if (!row.name) reasons.push('missing name');\n\n  if (row.cost === null || row.cost === undefined) reasons.push('cost missing or not a number');\n  else if (row.cost <= 0) reasons.push('cost <= 0');\n\n  if (row.stock === null || row.stock === undefined) reasons.push('stock missing or not a number');\n  else if (row.stock < 0) reasons.push('negative stock');\n\n  return { json: { ...row, valid: reasons.length === 0, reason: reasons.join('; ') } };\n});\n"
+      },
+      "id": "8f9270a9-bdb6-485f-a33a-6f4e5e3dfc3f",
+      "name": "Validate rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1580,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "be467751-7cef-4e6d-a75b-61f9bcc70605",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d71d5e75-9d3e-4882-a672-4415fac5e85e",
+      "name": "Row is valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Groups valid rows by SKU across suppliers and picks one preferred offer per SKU.\n// Preference: in stock first, then lowest cost, then most stock, then supplier name.\nconst groups = new Map();\nfor (const item of $input.all()) {\n  const row = item.json;\n  if (!groups.has(row.sku)) groups.set(row.sku, []);\n  groups.get(row.sku).push(row);\n}\n\nconst out = [];\nfor (const [sku, offers] of groups) {\n  offers.sort(\n    (a, b) =>\n      Number(b.stock > 0) - Number(a.stock > 0) ||\n      a.cost - b.cost ||\n      b.stock - a.stock ||\n      a.supplier.localeCompare(b.supplier),\n  );\n  const best = offers[0];\n  out.push({\n    json: {\n      sku,\n      name: best.name,\n      brand: best.brand,\n      category: best.category,\n      cost: best.cost,\n      currency: best.currency,\n      stock: best.stock,\n      totalStock: offers.reduce((sum, offer) => sum + offer.stock, 0),\n      inStock: best.stock > 0,\n      supplier: best.supplier,\n      supplierCount: offers.length,\n      otherSuppliers: offers.slice(1).map((offer) => ({\n        supplier: offer.supplier,\n        cost: offer.cost,\n        stock: offer.stock,\n        sourceUpdatedAt: offer.sourceUpdatedAt,\n      })),\n      sourceUpdatedAt: best.sourceUpdatedAt,\n    },\n  });\n}\n\nout.sort((a, b) => a.json.sku.localeCompare(b.json.sku));\nreturn out;\n"
+      },
+      "id": "9f43398c-2c04-4eba-a93b-e0ed5d1ee2b1",
+      "name": "Merge duplicates by SKU",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2120,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// sellPrice = cost * (1 + markup), done in integer cents and rounded once.\nconst config = $('Config').first().json;\nconst markupPercent = Number(config.markupPercent);\nconst minMarginPercent = Number(config.minMarginPercent);\n\nreturn $input.all().map((item) => {\n  const product = item.json;\n  const costCents = Math.round(product.cost * 100);\n  const sellCents = Math.round((costCents * (100 + markupPercent)) / 100);\n  const marginPercent = sellCents > 0 ? ((sellCents - costCents) / sellCents) * 100 : 0;\n\n  return {\n    json: {\n      recordType: 'product',\n      ...product,\n      markupPercent,\n      sellPrice: sellCents / 100,\n      marginPercent: Math.round(marginPercent * 100) / 100,\n      lowMargin: marginPercent < minMarginPercent,\n    },\n  };\n});\n"
+      },
+      "id": "009ca46d-132b-4911-aee1-8ad7322b2ef8",
+      "name": "Calculate pricing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// One flat record per rejected row: ready for a sheet row or a Slack line.\nreturn $input.all().map((item) => ({\n  json: {\n    recordType: 'error',\n    supplier: item.json.supplier,\n    row: item.json.sourceRow,\n    sku: item.json.sku,\n    name: item.json.name,\n    cost: item.json.cost,\n    stock: item.json.stock,\n    reason: item.json.reason,\n  },\n}));\n"
+      },
+      "id": "ed0f676e-8003-4d1e-a602-eab247213c23",
+      "name": "Format error report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2120,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Config').first().json.slackChannel }}"
+        },
+        "text": "={{ $('Format error report').all().length }} supplier feed row(s) rejected:\n{{ $('Format error report').all().map((i) => '- ' + i.json.supplier + ' row ' + i.json.row + ': ' + i.json.reason).join('\\n') }}",
+        "otherOptions": {}
+      },
+      "id": "81a6728d-ee6f-470d-a490-8ca88c7d3839",
+      "name": "Notify feed errors",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2380,
+        630
+      ],
+      "disabled": true,
+      "executeOnce": true,
+      "notes": "Disabled for the offline demo. Needs a Slack credential."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Config').first().json.googleSheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Errors"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "d3b7bc36-0be1-4e0a-a058-aa56d635606f",
+      "name": "Append to Errors tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2380,
+        810
+      ],
+      "disabled": true,
+      "notes": "Disabled for the offline demo. Needs a Google Sheets credential."
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "mode": "name",
+          "value": "products"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sku": "={{ $json.sku }}",
+            "name": "={{ $json.name }}",
+            "brand": "={{ $json.brand }}",
+            "category": "={{ $json.category }}",
+            "cost": "={{ $json.cost }}",
+            "sell_price": "={{ $json.sellPrice }}",
+            "margin_percent": "={{ $json.marginPercent }}",
+            "low_margin": "={{ $json.lowMargin }}",
+            "currency": "={{ $json.currency }}",
+            "stock": "={{ $json.stock }}",
+            "total_stock": "={{ $json.totalStock }}",
+            "supplier": "={{ $json.supplier }}",
+            "other_suppliers": "={{ JSON.stringify($json.otherSuppliers) }}",
+            "source_updated_at": "={{ $json.sourceUpdatedAt }}"
+          },
+          "matchingColumns": [
+            "sku"
+          ],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "1e3efde3-ae42-463c-af31-3e06fdecdfed",
+      "name": "Upsert products",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2700,
+        200
+      ],
+      "disabled": true,
+      "notes": "Disabled for the offline demo. Needs a Postgres credential and a products table."
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Config').first().json.googleSheetId }}"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Product Feed"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "sku": "={{ $json.sku }}",
+            "name": "={{ $json.name }}",
+            "brand": "={{ $json.brand }}",
+            "category": "={{ $json.category }}",
+            "cost": "={{ $json.cost }}",
+            "sell_price": "={{ $json.sellPrice }}",
+            "margin_percent": "={{ $json.marginPercent }}",
+            "low_margin": "={{ $json.lowMargin }}",
+            "currency": "={{ $json.currency }}",
+            "stock": "={{ $json.stock }}",
+            "total_stock": "={{ $json.totalStock }}",
+            "supplier": "={{ $json.supplier }}",
+            "other_suppliers": "={{ JSON.stringify($json.otherSuppliers) }}",
+            "source_updated_at": "={{ $json.sourceUpdatedAt }}"
+          },
+          "matchingColumns": [
+            "sku"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "e828ce44-41f0-4260-ab22-e76a6ba3d69f",
+      "name": "Update product feed tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        2700,
+        380
+      ],
+      "disabled": true,
+      "notes": "Disabled for the offline demo. Needs a Google Sheets credential."
+    },
+    {
+      "parameters": {
+        "mode": "append"
+      },
+      "id": "a8f8060e-3bf9-45b5-ac4a-426e09986abb",
+      "name": "Collect results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2700,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Totals for the whole run. Row counts come from \"Validate rows\" so they are\n// correct even when one of the two branches produced nothing.\nconst rows = $('Validate rows').all().map((item) => item.json);\nconst products = $input.all().map((item) => item.json).filter((r) => r.recordType === 'product');\n\nconst perSupplier = {};\nfor (const row of rows) {\n  const s = (perSupplier[row.supplier] ??= { rowsIn: 0, valid: 0, invalid: 0, preferredFor: 0 });\n  s.rowsIn += 1;\n  if (row.valid) s.valid += 1;\n  else s.invalid += 1;\n}\nfor (const product of products) {\n  if (perSupplier[product.supplier]) perSupplier[product.supplier].preferredFor += 1;\n}\n\nconst valid = rows.filter((row) => row.valid).length;\nconst invalid = rows.length - valid;\nconst uniqueSkus = products.length;\nconst duplicatesMerged = valid - uniqueSkus;\nconst lowMargin = products.filter((product) => product.lowMargin);\n\nconst slackText =\n  'Product feed run: ' + rows.length + ' rows in, ' + valid + ' valid, ' + invalid + ' invalid. ' +\n  uniqueSkus + ' unique SKUs (' + duplicatesMerged + ' duplicates merged), ' +\n  lowMargin.length + ' under minimum margin.';\n\nreturn [\n  {\n    json: {\n      runAt: new Date().toISOString(),\n      rowsIn: rows.length,\n      valid,\n      invalid,\n      uniqueSkus,\n      duplicatesMerged,\n      lowMarginCount: lowMargin.length,\n      lowMarginSkus: lowMargin.map((product) => product.sku),\n      perSupplier,\n      slackText,\n    },\n  },\n];\n"
+      },
+      "id": "2ca27368-ceb0-418f-a23b-7a17371347eb",
+      "name": "Run summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2940,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Config').first().json.slackChannel }}"
+        },
+        "text": "={{ $json.slackText }}",
+        "otherOptions": {}
+      },
+      "id": "79eb27d5-c6e2-42fd-a410-feeea54d50c0",
+      "name": "Feed run summary",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        3180,
+        620
+      ],
+      "disabled": true,
+      "notes": "Disabled for the offline demo. Needs a Slack credential."
+    },
+    {
+      "parameters": {
+        "content": "# Multi-Vendor Product Feed Automation\nThree supplier feeds (JSON, CSV, XML) → one schema → validation with an error branch → cross-supplier dedupe → pricing → Postgres, Google Sheets and Slack.\n**Offline demo:** sample feeds are embedded and pinned. Nodes that need credentials or a network are disabled.",
+        "width": 1040,
+        "height": 180,
+        "color": 5
+      },
+      "id": "891dd433-4e3e-408b-addb-89c84ec02718",
+      "name": "Note: Overview",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -100,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 1. Ingest\n**Config** holds markup, minimum margin, currency and the feed URLs. Each supplier has a live HTTP Request (disabled) followed by a Sample node that returns the embedded feed while `useSampleData` is true.",
+        "width": 740,
+        "height": 700,
+        "color": 4
+      },
+      "id": "8468d242-4bdd-4fa9-a22c-5fb7c27a2dad",
+      "name": "Note: Ingest",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 2. Normalize\nJSON, CSV and XML are parsed into one schema. SKUs are trimmed and uppercased; money is snapped to cents.",
+        "width": 260,
+        "height": 700,
+        "color": 6
+      },
+      "id": "2e774e4f-6f34-4cb5-a67f-cd5c71624549",
+      "name": "Note: Normalize",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        980,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 3. Validate\nAll rows are merged, then each is marked valid or invalid with a reason: blank SKU, missing name, cost <= 0, negative stock. The IF node sends valid rows up and invalid rows down.",
+        "width": 700,
+        "height": 700,
+        "color": 3
+      },
+      "id": "a483ca88-9ba0-4cd0-ab8a-386ae33b1f55",
+      "name": "Note: Validate",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 4. Merge and price\nOne record per SKU. Preferred supplier = lowest cost with stock > 0; the rest go to `otherSuppliers`. Sell price = cost × (1 + markup), with a minimum-margin flag.",
+        "width": 520,
+        "height": 400,
+        "color": 4
+      },
+      "id": "aae1fc85-bbd4-4878-ab3d-af9344e71ad5",
+      "name": "Note: Merge and price",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 5. Errors\nRejected rows become an error report (supplier, row, reason) for Slack and the Errors sheet tab.",
+        "width": 520,
+        "height": 480,
+        "color": 2
+      },
+      "id": "27683872-3c4c-4652-a7fe-149a075b54dc",
+      "name": "Note: Errors",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 6. Outputs\nPostgres upsert on `sku`, Google Sheets feed tab and Slack summary are disabled until credentials are added. **Run summary** reports the totals for every run.",
+        "width": 760,
+        "height": 920,
+        "color": 7
+      },
+      "id": "0892047d-c3cb-420c-adf1-07673f02dd4a",
+      "name": "Note: Outputs",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2620,
+        60
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Config": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Supplier A (JSON)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Supplier B (CSV)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP: Supplier C (XML)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Supplier A (JSON)": {
+      "main": [
+        [
+          {
+            "node": "Sample: Supplier A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample: Supplier A": {
+      "main": [
+        [
+          {
+            "node": "Normalize Supplier A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Supplier A": {
+      "main": [
+        [
+          {
+            "node": "Merge supplier feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Supplier B (CSV)": {
+      "main": [
+        [
+          {
+            "node": "Sample: Supplier B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample: Supplier B": {
+      "main": [
+        [
+          {
+            "node": "Normalize Supplier B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Supplier B": {
+      "main": [
+        [
+          {
+            "node": "Merge supplier feeds",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP: Supplier C (XML)": {
+      "main": [
+        [
+          {
+            "node": "Sample: Supplier C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sample: Supplier C": {
+      "main": [
+        [
+          {
+            "node": "Normalize Supplier C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Supplier C": {
+      "main": [
+        [
+          {
+            "node": "Merge supplier feeds",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge supplier feeds": {
+      "main": [
+        [
+          {
+            "node": "Validate rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate rows": {
+      "main": [
+        [
+          {
+            "node": "Row is valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Row is valid?": {
+      "main": [
+        [
+          {
+            "node": "Merge duplicates by SKU",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format error report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge duplicates by SKU": {
+      "main": [
+        [
+          {
+            "node": "Calculate pricing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format error report": {
+      "main": [
+        [
+          {
+            "node": "Notify feed errors",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append to Errors tab",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Collect results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Calculate pricing": {
+      "main": [
+        [
+          {
+            "node": "Upsert products",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update product feed tab",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Collect results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect results": {
+      "main": [
+        [
+          {
+            "node": "Run summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run summary": {
+      "main": [
+        [
+          {
+            "node": "Feed run summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Sample: Supplier A": [
+      {
+        "json": {
+          "supplier": "Northwind Outdoor Supply",
+          "generatedAt": "2026-11-18T06:00:00Z",
+          "products": [
+            {
+              "sku": "TB-750",
+              "title": "Trail Bottle 750ml",
+              "brand": "HydraPeak",
+              "category": "Hydration",
+              "unitCost": 6.4,
+              "currency": "USD",
+              "qtyAvailable": 120,
+              "updatedAt": "2026-11-18T05:42:00Z"
+            },
+            {
+              "sku": "CL-200",
+              "title": "Camp Lantern 200lm",
+              "brand": "Lumora",
+              "category": "Lighting",
+              "unitCost": 14.2,
+              "currency": "USD",
+              "qtyAvailable": 0,
+              "updatedAt": "2026-11-17T21:10:00Z"
+            },
+            {
+              "sku": "hl-120",
+              "title": "Headlamp 120lm",
+              "brand": "Lumora",
+              "category": "Lighting",
+              "unitCost": "9.75",
+              "currency": "usd",
+              "qtyAvailable": 64,
+              "updatedAt": "2026-11-18T05:42:00Z"
+            },
+            {
+              "sku": "ST-410",
+              "title": "Compact Stove",
+              "brand": "Emberline",
+              "category": "Cooking",
+              "unitCost": 31.5,
+              "currency": "USD",
+              "qtyAvailable": 0,
+              "updatedAt": "2026-11-16T12:00:00Z"
+            },
+            {
+              "sku": "MG-055",
+              "title": "Insulated Mug 350ml",
+              "brand": "HydraPeak",
+              "category": "Hydration",
+              "unitCost": 4.8,
+              "currency": "USD",
+              "qtyAvailable": 200,
+              "updatedAt": "2026-11-18T05:42:00Z"
+            },
+            {
+              "sku": "",
+              "title": "Unlabeled Bottle",
+              "brand": "HydraPeak",
+              "category": "Hydration",
+              "unitCost": 5.1,
+              "currency": "USD",
+              "qtyAvailable": 15,
+              "updatedAt": "2026-11-18T05:42:00Z"
+            },
+            {
+              "sku": "TN-902",
+              "title": "Two-Person Tent",
+              "brand": "Ridgeway",
+              "category": "Shelter",
+              "unitCost": 89,
+              "currency": "USD",
+              "qtyAvailable": 12,
+              "updatedAt": "2026-11-15T09:30:00Z"
+            },
+            {
+              "sku": "FK-018",
+              "title": "  Titanium Spork ",
+              "brand": "Emberline",
+              "category": "Cooking",
+              "unitCost": 2.35,
+              "currency": "USD",
+              "qtyAvailable": 340,
+              "updatedAt": "2026-11-18T05:42:00Z"
+            },
+            {
+              "sku": "ZT-001",
+              "title": "Cable Tie (single)",
+              "brand": "Ridgeway",
+              "category": "Accessories",
+              "unitCost": 0.07,
+              "currency": "USD",
+              "qtyAvailable": 5000,
+              "updatedAt": "2026-11-14T08:00:00Z"
+            }
+          ]
+        }
+      }
+    ],
+    "Sample: Supplier B": [
+      {
+        "json": {
+          "data": "Item Code,Description,Manufacturer,Dept,Wholesale Price,Stock On Hand,Last Updated\n TB-750 ,Trail Bottle 750ml,HydraPeak,Hydration,5.95,40,2026-11-17\nHM-310,\"Hammock, Single\",Ridgeway,Shelter,21.00,10,2026-11-17\nST-410,Compact Stove,Emberline,Cooking,30.00,0,2026-11-12\nMG-055,Insulated Mug 350ml,HydraPeak,Hydration,0.00,75,2026-11-17\nSB-640,\"Sleeping Bag, 3-Season\",Ridgeway,Sleep,$54.90,18,2026-11-16\nPD-220,Sleeping Pad,Ridgeway,Sleep,27.25,-3,2026-11-17\nWF-077,Water Filter,HydraPeak,Hydration,18.60,33,2026-11-17\nRP-150,\"Paracord 15m \"\"Type III\"\"\",Ridgeway,Accessories,3.10,410,2026-11-10\nFK-018,Titanium Spork,Emberline,Cooking,2.50,90,2026-11-17\nDB-330,Dry Bag 30L,Ridgeway,Accessories,8.45,\"1,057\",2026-11-17\n"
+        }
+      }
+    ],
+    "Sample: Supplier C": [
+      {
+        "json": {
+          "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<feed supplier=\"Coastline Trading\" generated=\"2026-11-18T04:15:00Z\">\n  <product id=\"1001\">\n    <sku>CL-200</sku>\n    <name>Camp Lantern 200lm</name>\n    <brand>Lumora</brand>\n    <category>Lighting</category>\n    <price currency=\"USD\">15.00</price>\n    <inventory>25</inventory>\n    <updated>2026-11-18T03:50:00Z</updated>\n  </product>\n  <product id=\"1002\">\n    <sku>TB-750</sku>\n    <name>Trail Bottle 750ml</name>\n    <brand>HydraPeak</brand>\n    <category>Hydration</category>\n    <price currency=\"USD\">6.10</price>\n    <inventory>0</inventory>\n    <updated>2026-11-18T03:50:00Z</updated>\n  </product>\n  <product id=\"1003\">\n    <sku>HM-310</sku>\n    <name>Hammock, Single</name>\n    <brand>Ridgeway</brand>\n    <category>Shelter</category>\n    <price currency=\"USD\">21.00</price>\n    <inventory>5</inventory>\n    <updated>2026-11-17T18:20:00Z</updated>\n  </product>\n  <product id=\"1004\">\n    <sku>HL-120 </sku>\n    <name>Headlamp 120lm</name>\n    <brand>Lumora</brand>\n    <category>Lighting</category>\n    <price currency=\"USD\">9.20</price>\n    <inventory>30</inventory>\n    <updated>2026-11-18T03:50:00Z</updated>\n  </product>\n  <product id=\"1005\">\n    <sku>CK-505</sku>\n    <name/>\n    <brand>Emberline</brand>\n    <category>Cooking</category>\n    <price currency=\"USD\">12.00</price>\n    <inventory>8</inventory>\n    <updated>2026-11-18T03:50:00Z</updated>\n  </product>\n  <product id=\"1006\">\n    <sku>FA-090</sku>\n    <name><![CDATA[First Aid Kit <Compact>]]></name>\n    <brand>Ridge &amp; Vale</brand>\n    <category>Safety</category>\n    <price currency=\"USD\">11.30</price>\n    <inventory>44</inventory>\n    <updated>2026-11-16T10:05:00Z</updated>\n  </product>\n  <product id=\"1007\">\n    <sku>WF-077</sku>\n    <name>Water Filter</name>\n    <brand>HydraPeak</brand>\n    <category>Hydration</category>\n    <price currency=\"USD\">19.25</price>\n    <inventory>12</inventory>\n    <updated>2026-11-18T03:50:00Z</updated>\n  </product>\n  <product id=\"1008\">\n    <sku>BT-812</sku>\n    <name>Trekking Poles (pair)</name>\n    <brand>Ridgeway</brand>\n    <category>Accessories</category>\n    <price currency=\"USD\">24.75</price>\n    <inventory>21</inventory>\n    <updated>2026-11-15T14:40:00Z</updated>\n  </product>\n  <product id=\"1009\">\n    <sku>GS-260</sku>\n    <name>Gas Canister 230g</name>\n    <brand>Emberline</brand>\n    <category>Cooking</category>\n    <price currency=\"USD\">3.95</price>\n    <inventory>150</inventory>\n    <updated>2026-11-18T03:50:00Z</updated>\n  </product>\n</feed>\n"
+        }
+      }
+    ]
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "versionId": "adcfef65-7a5b-4151-a412-930b1f63066c",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
